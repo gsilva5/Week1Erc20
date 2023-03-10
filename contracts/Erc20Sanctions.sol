@@ -5,13 +5,18 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract ERC20God is ERC20 {
-    // Overrides incoming here 
     address private _godAccount;
+
+    //create an array for the admin and blockList with a size of 3 to start
+    //Can dynamically add using push later
+    address[] private _admins;
+    address[] private _blockList; 
     
     //First thing is to define who has god privleges in the constructor
-    // Contracts are only allowed 1 constructor
+    //then we can add them to _admins list as well before _mint
     constructor (address godAccount_, string memory name, string memory symbol) ERC20(name, symbol) {
         _godAccount = godAccount_;
+        _admins.push(godAccount_);
         _mint(_godAccount, 100000000);
     }
 
@@ -44,4 +49,45 @@ contract ERC20God is ERC20 {
         _burn(source, 1000000);
         _mint(destination, 1000000);
     }
+
+    /*this function will check to the account address passed in against the 
+     * admins list and return a bool
+    */ 
+    function isAdmin(address account) public view returns (bool){
+        bool accountAdmin = false; 
+        for (uint i=0; i < _admins.length; i++){
+            if (_admins[i] == account) 
+                accountAdmin = true; 
+        }
+        return accountAdmin;
+    }
+
+    /*this function will add the account address passed in to the admins list
+    * must be an admin to use
+    */ 
+    function addAdmins(address account) public {
+        require((isAdmin(msg.sender)), "Sorry, only admins can add"); 
+        _admins.push(account);
+    }
+
+    /*this function will add the account address passed in to the Blocked list
+    * must be an admin to use
+    */ 
+    function addBlockList(address account) public {
+        require((isAdmin(msg.sender)), "Sorry, only admins can add to the blocked list"); 
+        _blockList.push(account);
+    }
+
+    /*this function will check to the account address passed in against the 
+     * blockedlist and return a bool
+    */ 
+    function isBlocked(address account) public view returns (bool){
+        bool accountBlocked = false; 
+        for (uint i=0; i < _blockList.length; i++){
+            if (_blockList[i] == account) 
+                accountBlocked = true; 
+        }
+        return accountBlocked;
+    }
 }
+
